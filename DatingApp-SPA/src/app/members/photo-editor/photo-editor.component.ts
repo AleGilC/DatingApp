@@ -5,6 +5,7 @@ import { AuthService } from 'src/app/_services/auth.service';
 import { UserService } from 'src/app/_services/user.service';
 import { AlertifyService } from 'src/app/_services/alertify.service';
 import { FileUploader } from 'ng2-file-upload';
+import { error } from 'protractor';
 
 @Component({
   selector: 'app-photo-editor',
@@ -70,8 +71,21 @@ export class PhotoEditorComponent implements OnInit {
       this.authService.currentUser.photoUrl = photo.url;
       localStorage.setItem('user', JSON.stringify(this.authService.currentUser));
       photo.isMain = true;
+    // tslint:disable-next-line: no-shadowed-variable
     }, error => {
       this.alertify.error(error);
+    });
+  }
+
+  deletePhoto(id: number) {
+    this.alertify.confirm('Are you sure you want to delete this photo?', () => {
+      this.userService.deletePhoto(this.authService.decodeToken.nameid, id).subscribe(() => {
+        this.photos.splice(this.photos.findIndex(p => p.id === id), 1);
+        this.alertify.success('Photo has been deleted');
+      // tslint:disable-next-line: no-shadowed-variable
+      }, error => {
+        this.alertify.error(error);
+      });
     });
   }
 
